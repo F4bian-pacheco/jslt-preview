@@ -1,0 +1,20 @@
+let orderCount = size(.orders)
+let totalAmount = .orders[0].price * .orders[0].quantity + .orders[1].price * .orders[1].quantity + .orders[2].price * .orders[2].quantity
+
+{
+  "customerName": .user.firstName + " " + .user.lastName,
+  "email": .user.email,
+  "isAdult": .user.age >= 18,
+  "accountStatus": if (.user.isActive) "Active" else "Inactive",
+  "orderSummary": {
+    "totalOrders": $orderCount,
+    "totalAmount": round($totalAmount),
+    "items": [for (.orders) {
+      "name": .product,
+      "unitPrice": .price,
+      "qty": .quantity,
+      "subtotal": .price * .quantity
+    }]
+  },
+  "processedDate": .metadata.lastModified
+}

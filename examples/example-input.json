@@ -1,0 +1,33 @@
+{
+  "user": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "age": 30,
+    "email": "john.doe@example.com",
+    "isActive": true
+  },
+  "orders": [
+    {
+      "id": 1,
+      "product": "Laptop",
+      "price": 999.99,
+      "quantity": 1
+    },
+    {
+      "id": 2,
+      "product": "Mouse",
+      "price": 29.99,
+      "quantity": 2
+    },
+    {
+      "id": 3,
+      "product": "Keyboard",
+      "price": 79.99,
+      "quantity": 1
+    }
+  ],
+  "metadata": {
+    "created": "2024-01-15",
+    "lastModified": "2024-01-20"
+  }
+}
