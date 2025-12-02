@@ -2,21 +2,22 @@
 
 ![JSLT Preview](resources/jslt-icon.svg)
 
-Extensión de VS Code para visualizar y probar transformaciones JSLT en tiempo real con preview interactivo para archivos JSON.
+Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El preview se actualiza automáticamente al guardar tus archivos.
 
 ## 🚀 Características
 
-- **Preview Interactivo en Tiempo Real**: Visualiza la transformación de JSON usando templates JSLT con actualización instantánea
-- **Explorador de Archivos JSLT**: Vista de árbol dedicada que muestra todos los archivos `.jslt` y `.json` en tu workspace
+- **Preview en Tiempo Real**: Visualiza el resultado de la transformación JSLT automáticamente al guardar
+- **Flujo de Trabajo Intuitivo**: Inicia desde archivos JSON, selecciona o crea templates JSLT, y edita en el editor de VS Code
+- **Actualización Automática**: El preview se refresca al guardar archivos JSLT o JSON (Ctrl+S)
 - **Syntax Highlighting**: Resaltado de sintaxis completo para archivos `.jslt` con soporte para:
   - Keywords (`let`, `if`, `else`, `for`, `def`)
   - Operadores lógicos y aritméticos
   - Funciones built-in de JSLT
   - Variables (`$variable`)
   - Propiedades (`.field`)
+- **Explorador de Archivos**: Vista de árbol dedicada que muestra todos los archivos `.jslt` y `.json` en tu workspace
 - **Integración con API**: Conexión directa con backend JSLT para transformaciones precisas
-- **Auto-refresh**: Actualización automática del preview al modificar archivos (configurable)
-- **Indicadores de Estado**: Visualización clara de errores, tiempos de ejecución y estado de transformación
+- **Visualización Limpia**: El preview solo muestra el resultado, sin distracciones
 
 ## 📋 Requisitos
 
@@ -34,32 +35,36 @@ Extensión de VS Code para visualizar y probar transformaciones JSLT en tiempo r
 
 ## 📖 Uso
 
-### Abrir el Preview
+### Flujo de Trabajo
 
-Hay varias formas de abrir el panel de preview:
+#### Opción 1: Desde un archivo JSON
 
-1. **Desde un archivo JSLT**: Abre un archivo `.jslt` y haz clic en el icono de preview en la barra superior del editor
-2. **Desde el comando**: Presiona `Ctrl+Shift+P` (o `Cmd+Shift+P` en Mac) y escribe "JSLT: Abrir Preview"
-3. **Desde el explorador JSLT**: Haz clic derecho en un archivo del explorador y selecciona "Transformar con archivo actual"
+1. **Abre un archivo JSON** en VS Code
+2. **Haz clic en el botón "▶️ Transformar con JSLT"** en la barra superior del editor
+3. **Elige una opción**:
+   - 📂 Abrir archivo JSLT existente
+   - ➕ Crear nuevo archivo JSLT
+4. **El preview se abre automáticamente** mostrando el resultado de la transformación
+5. **Edita tu JSLT** en el editor normal de VS Code
+6. **Guarda (Ctrl+S)** → El preview se actualiza automáticamente
 
-### Flujo de Trabajo Básico
+#### Opción 2: Desde un archivo JSLT
 
-1. **Selecciona un archivo JSON de entrada**: 
-   - Usa el botón "📄 Seleccionar JSON" en el panel
-   - O haz clic en un archivo `.json` desde el explorador JSLT
+1. **Abre un archivo JSLT** en VS Code
+2. **Haz clic en el botón "👁️ Abrir Preview JSLT"** en la barra superior
+3. **Selecciona el archivo JSON de contexto** (si es la primera vez)
+4. **El preview se abre** mostrando el resultado
+5. **Edita tu JSLT o JSON** en el editor
+6. **Guarda (Ctrl+S)** → El preview se actualiza automáticamente
 
-2. **Selecciona o escribe tu template JSLT**:
-   - Usa el botón "📝 Seleccionar JSLT" en el panel
-   - O escribe directamente en el editor JSLT del preview
+### El Preview
 
-3. **Transforma**:
-   - Presiona el botón "▶️ Transformar"
-   - O usa `Ctrl+Enter` desde cualquier editor
+El panel de preview muestra:
+- **Header**: Nombres de los archivos JSLT y JSON de contexto
+- **Contenido**: Resultado de la transformación en formato JSON formateado
+- **Footer**: Estado de la transformación y tiempo de ejecución
 
-4. **Visualiza el resultado**:
-   - El panel derecho mostrará el JSON transformado
-   - Si hay errores, se mostrarán con detalles útiles
-   - El tiempo de ejecución aparece en la barra de estado
+> 💡 **Tip**: El preview se actualiza automáticamente cada vez que guardas el archivo JSLT o el JSON de contexto
 
 ### Explorador JSLT
 
@@ -76,7 +81,7 @@ Accede a la configuración mediante `File > Preferences > Settings` y busca "JSL
 |--------------|------|-------------------|-------------|
 | `jsltPreview.apiEndpoint` | string | `http://localhost:8000/api/v1/transform` | URL del endpoint de la API JSLT |
 | `jsltPreview.apiTimeout` | number | `5000` | Timeout en milisegundos para peticiones |
-| `jsltPreview.autoRefresh` | boolean | `true` | Actualizar automáticamente el preview al modificar archivos |
+| `jsltPreview.autoRefresh` | boolean | `true` | Actualizar automáticamente el preview al guardar archivos JSLT o JSON |
 | `jsltPreview.defaultJsonFile` | string | `""` | Ruta del archivo JSON predeterminado |
 
 ### Ejemplo de configuración en `settings.json`:
@@ -91,11 +96,12 @@ Accede a la configuración mediante `File > Preferences > Settings` y busca "JSL
 
 ## 🎨 Comandos Disponibles
 
-- `JSLT: Abrir Preview` - Abre el panel de preview interactivo
-- `JSLT: Seleccionar archivo JSON de entrada` - Selecciona un archivo JSON para transformar
-- `JSLT: Seleccionar archivo JSLT` - Selecciona un template JSLT
+- `Transformar con JSLT` - Inicia el flujo de transformación desde un archivo JSON (botón ▶️ en archivos .json)
+- `Abrir Preview JSLT` - Abre el panel de preview desde un archivo JSLT (botón 👁️ en archivos .jslt)
+- `JSLT: Cambiar JSON de contexto` - Cambia el archivo JSON usado como contexto
+- `JSLT: Abrir archivo JSLT` - Abre y asocia un archivo JSLT al preview
 - `JSLT: Refrescar explorador` - Actualiza la lista de archivos en el explorador
-- `JSLT: Transformar con archivo actual` - Transforma usando el archivo seleccionado
+- `JSLT: Transformar con archivo actual` - Transforma usando el archivo seleccionado en el explorador
 
 ## 📝 Ejemplo de Uso
 

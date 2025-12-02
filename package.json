@@ -1,7 +1,7 @@
 {
   "name": "jslt-preview",
   "displayName": "JSLT Preview",
-  "description": "Visualiza y prueba transformaciones JSLT en tiempo real con preview interactivo para archivos JSON",
+  "description": "Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real con actualización automática al guardar",
   "version": "0.0.1",
   "publisher": "jslt-preview",
   "icon": "resources/icon.png",
@@ -42,18 +42,23 @@
     ],
     "commands": [
       {
+        "command": "jslt-preview.transformWithJslt",
+        "title": "Transformar con JSLT",
+        "icon": "$(play)"
+      },
+      {
         "command": "jslt-preview.openPreview",
-        "title": "JSLT: Abrir Preview",
+        "title": "Abrir Preview JSLT",
         "icon": "$(open-preview)"
       },
       {
         "command": "jslt-preview.selectJsonFile",
-        "title": "JSLT: Seleccionar archivo JSON de entrada",
+        "title": "JSLT: Cambiar JSON de contexto",
         "icon": "$(json)"
       },
       {
         "command": "jslt-preview.selectJsltFile",
-        "title": "JSLT: Seleccionar archivo JSLT",
+        "title": "JSLT: Abrir archivo JSLT",
         "icon": "$(file-code)"
       },
       {
@@ -69,6 +74,11 @@
     ],
     "menus": {
       "editor/title": [
+        {
+          "command": "jslt-preview.transformWithJslt",
+          "when": "resourceExtname == .json",
+          "group": "navigation"
+        },
         {
           "command": "jslt-preview.openPreview",
           "when": "resourceExtname == .jslt",
@@ -124,7 +134,7 @@
         "jsltPreview.autoRefresh": {
           "type": "boolean",
           "default": true,
-          "description": "Actualizar automáticamente el preview al modificar archivos"
+          "description": "Actualizar automáticamente el preview al guardar archivos JSLT o JSON"
         },
         "jsltPreview.defaultJsonFile": {
           "type": "string",

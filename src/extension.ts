@@ -23,23 +23,105 @@ export function activate(context: vscode.ExtensionContext) {
     showCollapseAll: true
   });
 
-  // Comando: Abrir Preview
-  const openPreviewCommand = vscode.commands.registerCommand('jslt-preview.openPreview', async () => {
-    JsltPreviewPanel.createOrShow(context.extensionUri, apiService);
-
-    // Si hay un archivo activo, cargarlo
+  // Comando: Transformar JSON con JSLT (desde archivo JSON)
+  const transformWithJsltCommand = vscode.commands.registerCommand('jslt-preview.transformWithJslt', async () => {
     const editor = vscode.window.activeTextEditor;
-    if (editor) {
-      const filePath = editor.document.uri.fsPath;
-      if (filePath.endsWith('.jslt')) {
-        await JsltPreviewPanel.currentPanel?.setJsltFile(filePath);
-      } else if (filePath.endsWith('.json')) {
-        await JsltPreviewPanel.currentPanel?.setJsonFile(filePath);
-      }
+    if (!editor || !editor.document.uri.fsPath.endsWith('.json')) {
+      vscode.window.showErrorMessage('Por favor, abre un archivo JSON primero');
+      return;
     }
+
+    const jsonPath = editor.document.uri.fsPath;
+
+    // Preguntar si quiere abrir un JSLT existente o crear uno nuevo
+    const option = await vscode.window.showQuickPick(
+      [
+        { label: '$(file-code) Abrir archivo JSLT existente', value: 'open' },
+        { label: '$(new-file) Crear nuevo archivo JSLT', value: 'create' }
+      ],
+      { placeHolder: 'Selecciona una opción' }
+    );
+
+    if (!option) {
+      return;
+    }
+
+    let jsltPath: string;
+
+    if (option.value === 'open') {
+      // Abrir archivo existente
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        filters: { 'JSLT': ['jslt'] },
+        openLabel: 'Seleccionar JSLT'
+      });
+
+      if (!uris || !uris[0]) {
+        return;
+      }
+      jsltPath = uris[0].fsPath;
+    } else {
+      // Crear nuevo archivo
+      const uri = await vscode.window.showSaveDialog({
+        filters: { 'JSLT': ['jslt'] },
+        saveLabel: 'Crear archivo JSLT'
+      });
+
+      if (!uri) {
+        return;
+      }
+
+      jsltPath = uri.fsPath;
+
+      // Crear archivo con template básico
+      const templateContent = '// Transforma el JSON de entrada\n// Contexto disponible: .\n\n.';
+      await vscode.workspace.fs.writeFile(uri, Buffer.from(templateContent, 'utf8'));
+    }
+
+    // Abrir el archivo JSLT en el editor
+    const doc = await vscode.workspace.openTextDocument(jsltPath);
+    await vscode.window.showTextDocument(doc);
+
+    // Crear el preview con el contexto JSON
+    JsltPreviewPanel.createOrShow(context.extensionUri, apiService, jsonPath);
+    await JsltPreviewPanel.currentPanel?.setJsltFile(jsltPath);
   });
 
-  // Comando: Seleccionar archivo JSON
+  // Comando: Abrir Preview desde archivo JSLT
+  const openPreviewCommand = vscode.commands.registerCommand('jslt-preview.openPreview', async () => {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor || !editor.document.uri.fsPath.endsWith('.jslt')) {
+      vscode.window.showErrorMessage('Por favor, abre un archivo JSLT primero');
+      return;
+    }
+
+    const jsltPath = editor.document.uri.fsPath;
+
+    // Verificar si ya hay un JSON de contexto asociado
+    const contextJson = JsltPreviewPanel.currentPanel?.getContextJsonPath();
+
+    if (!contextJson) {
+      // Preguntar por el JSON de contexto
+      const uris = await vscode.window.showOpenDialog({
+        canSelectMany: false,
+        filters: { 'JSON': ['json'] },
+        openLabel: 'Seleccionar JSON de contexto'
+      });
+
+      if (!uris || !uris[0]) {
+        vscode.window.showWarningMessage('Se requiere un JSON de contexto para el preview');
+        return;
+      }
+
+      JsltPreviewPanel.createOrShow(context.extensionUri, apiService, uris[0].fsPath);
+    } else {
+      JsltPreviewPanel.createOrShow(context.extensionUri, apiService, contextJson);
+    }
+
+    await JsltPreviewPanel.currentPanel?.setJsltFile(jsltPath);
+  });
+
+  // Comando: Seleccionar archivo JSON (obsoleto - se mantiene por compatibilidad)
   const selectJsonCommand = vscode.commands.registerCommand('jslt-preview.selectJsonFile', async () => {
     const uris = await vscode.window.showOpenDialog({
       canSelectMany: false,
@@ -48,10 +130,12 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     if (uris && uris[0]) {
-      if (!JsltPreviewPanel.currentPanel) {
-        JsltPreviewPanel.createOrShow(context.extensionUri, apiService);
+      // Si hay un panel abierto, cambiar el contexto
+      if (JsltPreviewPanel.currentPanel) {
+        await JsltPreviewPanel.currentPanel.changeContextJson();
+      } else {
+        vscode.window.showInformationMessage('Usa el comando "Transformar JSON con JSLT" desde un archivo JSON');
       }
-      await JsltPreviewPanel.currentPanel?.setJsonFile(uris[0].fsPath);
     }
   });
 
@@ -65,7 +149,19 @@ export function activate(context: vscode.ExtensionContext) {
 
     if (uris && uris[0]) {
       if (!JsltPreviewPanel.currentPanel) {
-        JsltPreviewPanel.createOrShow(context.extensionUri, apiService);
+        // Pedir JSON de contexto
+        const jsonUris = await vscode.window.showOpenDialog({
+          canSelectMany: false,
+          filters: { 'JSON': ['json'] },
+          openLabel: 'Seleccionar JSON de contexto'
+        });
+
+        if (!jsonUris || !jsonUris[0]) {
+          vscode.window.showWarningMessage('Se requiere un JSON de contexto');
+          return;
+        }
+
+        JsltPreviewPanel.createOrShow(context.extensionUri, apiService, jsonUris[0].fsPath);
       }
       await JsltPreviewPanel.currentPanel?.setJsltFile(uris[0].fsPath);
     }
@@ -79,24 +175,59 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Comando: Transformar con archivo actual
   const transformCurrentCommand = vscode.commands.registerCommand('jslt-preview.transformCurrent', async (item) => {
-    if (!JsltPreviewPanel.currentPanel) {
-      JsltPreviewPanel.createOrShow(context.extensionUri, apiService);
-    }
-
     if (item && item.filePath) {
       if (item.filePath.endsWith('.jslt')) {
-        await JsltPreviewPanel.currentPanel?.setJsltFile(item.filePath);
+        // Abrir el archivo JSLT
+        const doc = await vscode.workspace.openTextDocument(item.filePath);
+        await vscode.window.showTextDocument(doc);
+
+        // Pedir contexto JSON si no hay panel abierto
+        const currentPanel = JsltPreviewPanel.currentPanel;
+        if (!currentPanel) {
+          const uris = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            filters: { 'JSON': ['json'] },
+            openLabel: 'Seleccionar JSON de contexto'
+          });
+
+          if (uris && uris[0]) {
+            JsltPreviewPanel.createOrShow(context.extensionUri, apiService, uris[0].fsPath);
+            const newPanel = JsltPreviewPanel.currentPanel;
+            if (newPanel) {
+              await newPanel.setJsltFile(item.filePath);
+            }
+          }
+        } else {
+          await currentPanel.setJsltFile(item.filePath);
+        }
       } else if (item.filePath.endsWith('.json')) {
-        await JsltPreviewPanel.currentPanel?.setJsonFile(item.filePath);
+        // Abrir el archivo JSON y ejecutar el comando transformWithJslt
+        const doc = await vscode.workspace.openTextDocument(item.filePath);
+        await vscode.window.showTextDocument(doc);
+        await vscode.commands.executeCommand('jslt-preview.transformWithJslt');
       }
     }
-  });
-
-  // Watch para auto-refresh
+  });  // Watch para auto-refresh
   const config = vscode.workspace.getConfiguration('jsltPreview');
   if (config.get<boolean>('autoRefresh')) {
     setupFileWatcher(context);
   }
+
+  // Listener para detectar cuando se guarda un archivo JSLT o JSON
+  const saveListener = vscode.workspace.onDidSaveTextDocument(async (document) => {
+    const currentPanel = JsltPreviewPanel.currentPanel;
+    if (!currentPanel) {
+      return;
+    }
+
+    if (document.fileName.endsWith('.jslt') && document.fileName === currentPanel.getCurrentJsltPath()) {
+      // El archivo JSLT del preview fue guardado, actualizar preview
+      await currentPanel.setJsltFile(document.fileName);
+    } else if (document.fileName.endsWith('.json') && document.fileName === currentPanel.getContextJsonPath()) {
+      // El JSON de contexto fue modificado, actualizar preview
+      await currentPanel.refreshTransform();
+    }
+  });
 
   // Detectar cambios en la configuración
   const configChangeListener = vscode.workspace.onDidChangeConfiguration(e => {
@@ -113,12 +244,14 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Registrar todos los comandos y suscripciones
   context.subscriptions.push(
+    transformWithJsltCommand,
     openPreviewCommand,
     selectJsonCommand,
     selectJsltCommand,
     refreshExplorerCommand,
     transformCurrentCommand,
     treeView,
+    saveListener,
     configChangeListener
   );
 
@@ -138,9 +271,7 @@ function setupFileWatcher(context: vscode.ExtensionContext) {
     // Si el panel está abierto y el archivo cambió es el que está siendo visualizado
     if (JsltPreviewPanel.currentPanel) {
       const filePath = uri.fsPath;
-      if (filePath.endsWith('.json')) {
-        JsltPreviewPanel.currentPanel.setJsonFile(filePath);
-      } else if (filePath.endsWith('.jslt')) {
+      if (filePath.endsWith('.jslt') && filePath === JsltPreviewPanel.currentPanel.getCurrentJsltPath()) {
         JsltPreviewPanel.currentPanel.setJsltFile(filePath);
       }
     }
