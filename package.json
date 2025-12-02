@@ -3,21 +3,136 @@
   "displayName": "JSLT Preview",
   "description": "Visualiza y prueba transformaciones JSLT en tiempo real con preview interactivo para archivos JSON",
   "version": "0.0.1",
+  "publisher": "jslt-preview",
+  "icon": "resources/icon.png",
   "engines": {
     "vscode": "^1.106.1"
   },
   "categories": [
+    "Programming Languages",
+    "Formatters",
     "Other"
   ],
-  "activationEvents": [],
+  "keywords": [
+    "jslt",
+    "json",
+    "transformation",
+    "preview",
+    "template"
+  ],
+  "activationEvents": [
+    "onLanguage:json"
+  ],
   "main": "./out/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "jslt",
+        "aliases": ["JSLT", "jslt"],
+        "extensions": [".jslt"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "jslt",
+        "scopeName": "source.jslt",
+        "path": "./syntaxes/jslt.tmLanguage.json"
+      }
+    ],
     "commands": [
       {
-        "command": "jslt-preview.helloWorld",
-        "title": "Hello World"
+        "command": "jslt-preview.openPreview",
+        "title": "JSLT: Abrir Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "jslt-preview.selectJsonFile",
+        "title": "JSLT: Seleccionar archivo JSON de entrada",
+        "icon": "$(json)"
+      },
+      {
+        "command": "jslt-preview.selectJsltFile",
+        "title": "JSLT: Seleccionar archivo JSLT",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "jslt-preview.refreshExplorer",
+        "title": "JSLT: Refrescar explorador",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "jslt-preview.transformCurrent",
+        "title": "JSLT: Transformar con archivo actual",
+        "icon": "$(play)"
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "jslt-preview.openPreview",
+          "when": "resourceExtname == .jslt",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "jslt-preview.refreshExplorer",
+          "when": "view == jsltExplorer",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "jslt-preview.transformCurrent",
+          "when": "view == jsltExplorer && viewItem == jsltFile",
+          "group": "inline"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "jslt-preview",
+          "title": "JSLT Preview",
+          "icon": "resources/jslt-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "jslt-preview": [
+        {
+          "id": "jsltExplorer",
+          "name": "JSLT Explorer",
+          "icon": "resources/jslt-icon.svg"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "JSLT Preview",
+      "properties": {
+        "jsltPreview.apiEndpoint": {
+          "type": "string",
+          "default": "http://localhost:8000/api/v1/transform",
+          "description": "URL del endpoint de la API JSLT"
+        },
+        "jsltPreview.apiTimeout": {
+          "type": "number",
+          "default": 5000,
+          "description": "Timeout en milisegundos para las peticiones a la API"
+        },
+        "jsltPreview.autoRefresh": {
+          "type": "boolean",
+          "default": true,
+          "description": "Actualizar automáticamente el preview al modificar archivos"
+        },
+        "jsltPreview.defaultJsonFile": {
+          "type": "string",
+          "default": "",
+          "description": "Ruta del archivo JSON predeterminado para el preview"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
