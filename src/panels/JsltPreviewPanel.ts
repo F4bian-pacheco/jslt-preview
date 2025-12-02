@@ -8,23 +8,24 @@ export class JsltPreviewPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
   private _apiService: JsltApiService;
-  private _currentJsonPath: string | undefined;
+  private _contextJsonPath: string;
   private _currentJsltPath: string | undefined;
+  private _validationTimeout: NodeJS.Timeout | undefined;
 
-  public static createOrShow(extensionUri: vscode.Uri, apiService: JsltApiService) {
-    const column = vscode.window.activeTextEditor
-      ? vscode.window.activeTextEditor.viewColumn
-      : undefined;
+  public static createOrShow(extensionUri: vscode.Uri, apiService: JsltApiService, contextJsonPath: string) {
+    const column = vscode.ViewColumn.Beside;
 
     if (JsltPreviewPanel.currentPanel) {
+      JsltPreviewPanel.currentPanel._contextJsonPath = contextJsonPath;
       JsltPreviewPanel.currentPanel._panel.reveal(column);
+      JsltPreviewPanel.currentPanel.loadContextJson();
       return;
     }
 
     const panel = vscode.window.createWebviewPanel(
       'jsltPreview',
       'JSLT Preview',
-      column || vscode.ViewColumn.One,
+      column,
       {
         enableScripts: true,
         retainContextWhenHidden: true,
@@ -34,28 +35,35 @@ export class JsltPreviewPanel {
       }
     );
 
-    JsltPreviewPanel.currentPanel = new JsltPreviewPanel(panel, extensionUri, apiService);
+    JsltPreviewPanel.currentPanel = new JsltPreviewPanel(panel, extensionUri, apiService, contextJsonPath);
   }
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, apiService: JsltApiService) {
+  public getContextJsonPath(): string {
+    return this._contextJsonPath;
+  }
+
+  public getCurrentJsltPath(): string | undefined {
+    return this._currentJsltPath;
+  }
+
+  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, apiService: JsltApiService, contextJsonPath: string) {
     this._panel = panel;
     this._extensionUri = extensionUri;
     this._apiService = apiService;
+    this._contextJsonPath = contextJsonPath;
 
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
     this._panel.webview.html = this._getHtmlForWebview();
 
+    // Cargar el JSON de contexto automáticamente
+    this.loadContextJson();
+
     this._panel.webview.onDidReceiveMessage(
       async message => {
         switch (message.type) {
-          case 'transform':
-            await this.handleTransform(message.inputJson, message.jsltExpression);
-            break;
-          case 'selectJsonFile':
-            await this.selectJsonFile();
-            break;
-          case 'selectJsltFile':
-            await this.selectJsltFile();
+          case 'ready':
+            // El webview está listo, realizar transformación inicial
+            await this.performTransform();
             break;
         }
       },
@@ -64,24 +72,88 @@ export class JsltPreviewPanel {
     );
   }
 
-  public async setJsonFile(filePath: string) {
-    this._currentJsonPath = filePath;
-    const content = await this.readFileContent(filePath);
+  private async loadContextJson() {
+    const content = await this.readFileContent(this._contextJsonPath);
     this._panel.webview.postMessage({
-      type: 'setJsonContent',
+      type: 'setContextJson',
       content: content,
-      filePath: filePath
+      filePath: this._contextJsonPath
     });
+  }
+
+  public async changeContextJson() {
+    const uris = await vscode.window.showOpenDialog({
+      canSelectMany: false,
+      filters: { 'JSON': ['json'] },
+      openLabel: 'Seleccionar nuevo JSON de contexto'
+    });
+
+    if (uris && uris[0]) {
+      this._contextJsonPath = uris[0].fsPath;
+      await this.loadContextJson();
+    }
   }
 
   public async setJsltFile(filePath: string) {
     this._currentJsltPath = filePath;
-    const content = await this.readFileContent(filePath);
-    this._panel.webview.postMessage({
-      type: 'setJsltContent',
-      content: content,
-      filePath: filePath
-    });
+    // Realizar transformación automáticamente
+    await this.performTransform();
+  }
+
+  public async refreshTransform() {
+    // Método público para refrescar la transformación cuando cambia el JSON de contexto
+    await this.performTransform();
+  }
+
+  private async performTransform() {
+    if (!this._currentJsltPath) {
+      this._panel.webview.postMessage({
+        type: 'showResult',
+        success: false,
+        error: 'No hay archivo JSLT seleccionado'
+      });
+      return;
+    }
+
+    try {
+      // Leer JSLT
+      const jsltExpression = await this.readFileContent(this._currentJsltPath);
+
+      // Leer JSON de contexto
+      const jsonContent = await this.readFileContent(this._contextJsonPath);
+      let jsonObject: any;
+
+      try {
+        jsonObject = JSON.parse(jsonContent);
+      } catch (e) {
+        this._panel.webview.postMessage({
+          type: 'showResult',
+          success: false,
+          error: 'JSON de contexto inválido: ' + (e as Error).message
+        });
+        return;
+      }
+
+      // Transformar
+      const result = await this._apiService.transform(jsonObject, jsltExpression);
+
+      this._panel.webview.postMessage({
+        type: 'showResult',
+        success: result.success,
+        output: result.success ? JSON.stringify(result.output, null, 2) : null,
+        error: result.error,
+        executionTime: result.execution_time_ms,
+        jsltFile: this._currentJsltPath,
+        contextFile: this._contextJsonPath
+      });
+
+    } catch (error) {
+      this._panel.webview.postMessage({
+        type: 'showResult',
+        success: false,
+        error: 'Error inesperado: ' + (error as Error).message
+      });
+    }
   }
 
   private async readFileContent(filePath: string): Promise<string> {
@@ -94,62 +166,7 @@ export class JsltPreviewPanel {
     }
   }
 
-  private async handleTransform(inputJson: string, jsltExpression: string) {
-    try {
-      let jsonObject: any;
-      try {
-        jsonObject = JSON.parse(inputJson);
-      } catch (e) {
-        this._panel.webview.postMessage({
-          type: 'transformResult',
-          success: false,
-          error: 'JSON de entrada inválido: ' + (e as Error).message
-        });
-        return;
-      }
 
-      const result = await this._apiService.transform(jsonObject, jsltExpression);
-
-      this._panel.webview.postMessage({
-        type: 'transformResult',
-        success: result.success,
-        output: result.success ? JSON.stringify(result.output, null, 2) : null,
-        error: result.error,
-        executionTime: result.execution_time_ms
-      });
-
-    } catch (error) {
-      this._panel.webview.postMessage({
-        type: 'transformResult',
-        success: false,
-        error: 'Error inesperado: ' + (error as Error).message
-      });
-    }
-  }
-
-  private async selectJsonFile() {
-    const uris = await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      filters: { 'JSON': ['json'] },
-      openLabel: 'Seleccionar JSON'
-    });
-
-    if (uris && uris[0]) {
-      await this.setJsonFile(uris[0].fsPath);
-    }
-  }
-
-  private async selectJsltFile() {
-    const uris = await vscode.window.showOpenDialog({
-      canSelectMany: false,
-      filters: { 'JSLT': ['jslt'] },
-      openLabel: 'Seleccionar JSLT'
-    });
-
-    if (uris && uris[0]) {
-      await this.setJsltFile(uris[0].fsPath);
-    }
-  }
 
   public dispose() {
     JsltPreviewPanel.currentPanel = undefined;
@@ -170,6 +187,7 @@ export class JsltPreviewPanel {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline';">
     <title>JSLT Preview</title>
     <style>
         * {
@@ -181,240 +199,114 @@ export class JsltPreviewPanel {
             font-family: var(--vscode-font-family);
             color: var(--vscode-foreground);
             background-color: var(--vscode-editor-background);
-            padding: 10px;
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            padding: 10px;
+        .header {
+            padding: 12px 16px;
             background-color: var(--vscode-sideBar-background);
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        .toolbar button {
-            background-color: var(--vscode-button-background);
-            color: var(--vscode-button-foreground);
-            border: none;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 13px;
-        }
-        .toolbar button:hover {
-            background-color: var(--vscode-button-hoverBackground);
-        }
-        .toolbar .file-info {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            border-bottom: 1px solid var(--vscode-panel-border);
             font-size: 12px;
             color: var(--vscode-descriptionForeground);
         }
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            flex: 1;
-            overflow: hidden;
+        .header-item {
+            margin-bottom: 4px;
         }
-        .panel {
-            display: flex;
-            flex-direction: column;
-            background-color: var(--vscode-editor-background);
-            border: 1px solid var(--vscode-panel-border);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        .panel-header {
-            padding: 10px;
-            background-color: var(--vscode-sideBarSectionHeader-background);
-            border-bottom: 1px solid var(--vscode-panel-border);
-            font-weight: 600;
-            font-size: 13px;
-        }
-        .panel-content {
+        .content {
             flex: 1;
             overflow: auto;
-            padding: 10px;
+            padding: 16px;
         }
-        textarea {
-            width: 100%;
-            height: 100%;
-            background-color: var(--vscode-input-background);
-            color: var(--vscode-input-foreground);
-            border: 1px solid var(--vscode-input-border);
-            padding: 10px;
-            font-family: var(--vscode-editor-font-family);
-            font-size: var(--vscode-editor-font-size);
-            resize: none;
-            border-radius: 4px;
-        }
-        textarea:focus {
-            outline: 1px solid var(--vscode-focusBorder);
-        }
-        .output-content {
+        .output {
             font-family: var(--vscode-editor-font-family);
             font-size: var(--vscode-editor-font-size);
             white-space: pre-wrap;
-            word-break: break-all;
+            word-break: break-word;
+            line-height: 1.5;
         }
         .error {
             color: var(--vscode-errorForeground);
             background-color: var(--vscode-inputValidation-errorBackground);
-            padding: 10px;
+            padding: 12px;
             border-radius: 4px;
             border: 1px solid var(--vscode-inputValidation-errorBorder);
         }
-        .success {
-            color: var(--vscode-terminal-ansiGreen);
-        }
-        .status-bar {
-            padding: 8px 10px;
+        .footer {
+            padding: 8px 16px;
             background-color: var(--vscode-statusBar-background);
             color: var(--vscode-statusBar-foreground);
-            font-size: 12px;
+            font-size: 11px;
             border-top: 1px solid var(--vscode-panel-border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .loading {
-            opacity: 0.6;
-        }
-        .execution-time {
+            text-align: center;
             color: var(--vscode-descriptionForeground);
+            font-style: italic;
         }
     </style>
 </head>
 <body>
-    <div class="toolbar">
-        <button onclick="selectJson()">📄 Seleccionar JSON</button>
-        <button onclick="selectJslt()">📝 Seleccionar JSLT</button>
-        <button onclick="transform()" id="transformBtn">▶️ Transformar</button>
-        <div class="file-info">
-            <span id="jsonFileName">JSON: ninguno</span>
-            <span id="jsltFileName">JSLT: ninguno</span>
+    <div class="header">
+        <div class="header-item">
+            <strong>JSLT:</strong> <span id="jsltFile">-</span>
+        </div>
+        <div class="header-item">
+            <strong>JSON Context:</strong> <span id="contextFile">-</span>
         </div>
     </div>
 
-    <div class="container">
-        <div class="panel">
-            <div class="panel-header">📥 JSON de Entrada</div>
-            <div class="panel-content">
-                <textarea id="inputJson" placeholder="Pega aquí tu JSON de entrada o selecciona un archivo...">{}</textarea>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">📝 Expresión JSLT</div>
-            <div class="panel-content">
-                <textarea id="jsltExpression" placeholder="Escribe tu expresión JSLT aquí o selecciona un archivo...">.</textarea>
-            </div>
-        </div>
-
-        <div class="panel">
-            <div class="panel-header">📤 Resultado</div>
-            <div class="panel-content">
-                <div id="output" class="output-content">Presiona "Transformar" para ver el resultado...</div>
-            </div>
-        </div>
+    <div class="content">
+        <div id="output" class="output loading">Esperando transformación...</div>
     </div>
 
-    <div class="status-bar">
+    <div class="footer">
         <span id="status">Listo</span>
-        <span id="executionTime" class="execution-time"></span>
+        <span id="executionTime"></span>
     </div>
 
     <script>
         const vscode = acquireVsCodeApi();
-        
-        function selectJson() {
-            vscode.postMessage({ type: 'selectJsonFile' });
-        }
-
-        function selectJslt() {
-            vscode.postMessage({ type: 'selectJsltFile' });
-        }
-
-        function transform() {
-            const inputJson = document.getElementById('inputJson').value;
-            const jsltExpression = document.getElementById('jsltExpression').value;
-            
-            if (!inputJson.trim() || !jsltExpression.trim()) {
-                updateOutput(false, null, 'Por favor, proporciona tanto el JSON de entrada como la expresión JSLT');
-                return;
-            }
-
-            document.getElementById('status').textContent = '⏳ Transformando...';
-            document.getElementById('transformBtn').disabled = true;
-            document.getElementById('output').className = 'output-content loading';
-            
-            vscode.postMessage({
-                type: 'transform',
-                inputJson: inputJson,
-                jsltExpression: jsltExpression
-            });
-        }
-
-        function updateOutput(success, output, error, executionTime) {
-            const outputDiv = document.getElementById('output');
-            const statusSpan = document.getElementById('status');
-            const timeSpan = document.getElementById('executionTime');
-            
-            document.getElementById('transformBtn').disabled = false;
-            outputDiv.className = 'output-content';
-            
-            if (success) {
-                outputDiv.className = 'output-content success';
-                outputDiv.textContent = output;
-                statusSpan.textContent = '✅ Transformación exitosa';
-                if (executionTime !== undefined) {
-                    timeSpan.textContent = \`⚡ \${executionTime.toFixed(2)}ms\`;
-                }
-            } else {
-                outputDiv.className = 'output-content error';
-                outputDiv.textContent = error || 'Error desconocido';
-                statusSpan.textContent = '❌ Error en la transformación';
-                timeSpan.textContent = '';
-            }
-        }
 
         window.addEventListener('message', event => {
             const message = event.data;
             
-            switch (message.type) {
-                case 'setJsonContent':
-                    document.getElementById('inputJson').value = message.content;
-                    document.getElementById('jsonFileName').textContent = 'JSON: ' + message.filePath.split(/[\\\\/]/).pop();
-                    break;
-                    
-                case 'setJsltContent':
-                    document.getElementById('jsltExpression').value = message.content;
-                    document.getElementById('jsltFileName').textContent = 'JSLT: ' + message.filePath.split(/[\\\\/]/).pop();
-                    break;
-                    
-                case 'transformResult':
-                    updateOutput(message.success, message.output, message.error, message.executionTime);
-                    break;
+            if (message.type === 'showResult') {
+                const outputDiv = document.getElementById('output');
+                const statusSpan = document.getElementById('status');
+                const timeSpan = document.getElementById('executionTime');
+                const jsltFile = document.getElementById('jsltFile');
+                const contextFile = document.getElementById('contextFile');
+                
+                // Actualizar archivos
+                if (message.jsltFile) {
+                    jsltFile.textContent = message.jsltFile.split(/[\\\\/]/).pop();
+                }
+                if (message.contextFile) {
+                    contextFile.textContent = message.contextFile.split(/[\\\\/]/).pop();
+                }
+                
+                if (message.success) {
+                    outputDiv.className = 'output';
+                    outputDiv.textContent = message.output;
+                    statusSpan.textContent = '✅ Transformación exitosa';
+                    if (message.executionTime !== undefined) {
+                        timeSpan.textContent = \`⚡ \${message.executionTime.toFixed(2)}ms\`;
+                    }
+                } else {
+                    outputDiv.className = 'output error';
+                    outputDiv.textContent = message.error || 'Error desconocido';
+                    statusSpan.textContent = '❌ Error';
+                    timeSpan.textContent = '';
+                }
             }
         });
 
-        // Auto-transform on Ctrl+Enter
-        document.getElementById('inputJson').addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                transform();
-            }
-        });
-        
-        document.getElementById('jsltExpression').addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                transform();
-            }
-        });
+        // Notificar que el webview está listo
+        vscode.postMessage({ type: 'ready' });
     </script>
 </body>
 </html>`;
