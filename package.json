@@ -3,8 +3,13 @@
   "displayName": "JSLT Preview",
   "description": "Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real con actualización automática al guardar",
   "version": "0.0.1",
-  "publisher": "jslt-preview",
-  "icon": "resources/icon.png",
+  "publisher": "FabianPacheco",
+  "icon": "resources/jslt-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/F4bian-pacheco/jslt-preview"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.106.1"
   },

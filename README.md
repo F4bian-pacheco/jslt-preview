@@ -1,7 +1,5 @@
 # JSLT Preview - Extensión de Visual Studio Code
 
-![JSLT Preview](resources/jslt-icon.svg)
-
 Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El preview se actualiza automáticamente al guardar tus archivos.
 
 ## 🚀 Características
@@ -22,16 +20,39 @@ Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El 
 ## 📋 Requisitos
 
 - **Visual Studio Code**: v1.106.1 o superior
-- **Backend JSLT API**: El servidor backend debe estar corriendo (por defecto en `http://localhost:8000`)
-  - Endpoint de transformación: `/api/v1/transform`
-  - Endpoint de validación: `/api/v1/validate`
+- **API JSLT Backend**: Un servidor REST que implemente los siguientes endpoints:
+  
+  **POST** `/api/v1/transform`
+  ```typescript
+  // Request Body
+  {
+    "input_json": any,        // El JSON a transformar
+    "jslt_expression": string // La expresión JSLT
+  }
+  
+  // Response
+  {
+    "success": boolean,
+    "output": any,
+    "error": string | null,
+    "execution_time_ms": number
+  }
+  ```
 
-## 🔧 Instalación
-
-1. Clona este repositorio o descarga la extensión desde el marketplace
-2. Abre la carpeta del proyecto en VS Code
-3. Ejecuta `npm install` para instalar dependencias
-4. Presiona `F5` para ejecutar la extensión en modo desarrollo
+  **POST** `/api/v1/validate` (opcional)
+  ```typescript
+  // Request Body
+  {
+    "jslt_expression": string
+  }
+  
+  // Response
+  {
+    "valid": boolean,
+    "error": string | null,
+    "suggestions": string[]
+  }
+  ```
 
 ## 📖 Uso
 
@@ -135,36 +156,7 @@ let skillCount = size(.skills)
 }
 ```
 
-## 🔌 Integración con Backend
 
-La extensión requiere que el backend JSLT esté corriendo. Para iniciar el servidor:
-
-```bash
-cd backend
-python start.py
-```
-
-El servidor estará disponible en `http://localhost:8000`.
-
-### API Endpoints
-
-**POST `/api/v1/transform`**
-```json
-{
-  "input_json": {},
-  "jslt_expression": "string"
-}
-```
-
-**Respuesta:**
-```json
-{
-  "success": true,
-  "output": {},
-  "error": null,
-  "execution_time_ms": 1.23
-}
-```
 
 ## 🐛 Solución de Problemas
 
@@ -173,9 +165,10 @@ El servidor estará disponible en `http://localhost:8000`.
 - Intenta refrescar manualmente el explorador JSLT
 
 ### Error "No se pudo conectar con la API"
-- Asegúrate de que el backend esté corriendo en `http://localhost:8000`
-- Verifica la configuración `jsltPreview.apiEndpoint`
-- Comprueba que no haya firewall bloqueando la conexión
+- Asegúrate de que tu API JSLT esté corriendo en el endpoint configurado (por defecto `http://localhost:8000`)
+- Verifica la configuración `jsltPreview.apiEndpoint` y actualízala con la URL de tu API
+- Comprueba que tu API implemente correctamente el endpoint `/api/v1/transform`
+- Verifica que no haya firewall bloqueando la conexión
 
 ### Error de timeout
 - Aumenta el valor de `jsltPreview.apiTimeout`
