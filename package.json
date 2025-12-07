@@ -2,7 +2,7 @@
   "name": "jslt-preview",
   "displayName": "JSLT Preview",
   "description": "Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real con actualización automática al guardar",
-  "version": "0.0.2",
+  "version": "1.0.3",
   "publisher": "FabianPacheco",
   "icon": "resources/jslt-icon.png",
   "repository": {

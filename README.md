@@ -2,6 +2,8 @@
 
 Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El preview se actualiza automáticamente al guardar tus archivos.
 
+⚠️ **Importante**: El backend JSLT y el sistema de validación utilizados en esta extensión son interpretaciones basadas en el proyecto original de [JSLT](https://github.com/schibsted/jslt). Pueden contener imprecisiones o no incluir todas las características del lenguaje original. Las características faltantes se irán añadiendo progresivamente. **Si necesitas mayor complejidad o precisión, consulta el repositorio original de JSLT**.
+
 ## 🚀 Características
 
 - **Preview en Tiempo Real**: Visualiza el resultado de la transformación JSLT automáticamente al guardar
@@ -53,6 +55,14 @@ Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El 
     "suggestions": string[]
   }
   ```
+
+### 📌 Nota sobre el Backend JSLT
+
+> ⚠️ El backend JSLT utilizado en esta extensión es una implementación interpretada basada en el lenguaje JSLT original. Esto significa que:
+> - Puede haber diferencias en el comportamiento respecto al JSLT oficial
+> - No todas las características del JSLT original pueden estar soportadas
+> - Las características se irán completando gradualmente
+> - Para casos de uso que requieran total compatibilidad, se recomienda consultar el [repositorio oficial de JSLT](https://github.com/schibsted/jslt) o usar directamente su implementación en Java
 
 ## 📖 Uso
 
