@@ -23,9 +23,10 @@ export interface ValidateResponse {
 }
 
 export class JsltApiService {
+  private static readonly BACKEND_URL = 'https://jslt-backend-production.up.railway.app/api/v1/transform';
+
   private getApiEndpoint(): string {
-    const config = vscode.workspace.getConfiguration('jsltPreview');
-    return config.get<string>('apiEndpoint') || 'http://localhost:8000/api/v1/transform';
+    return JsltApiService.BACKEND_URL;
   }
 
   private getApiTimeout(): number {

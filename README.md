@@ -1,132 +1,175 @@
-# JSLT Preview - Extensión de Visual Studio Code
+# JSLT Preview - Visual Studio Code Extension
 
-Transforma archivos JSON con JSLT y visualiza los resultados en tiempo real. El preview se actualiza automáticamente al guardar tus archivos.
+Transform JSON files with JSLT and visualize results in real-time. The preview automatically updates when you save your files.
 
-## 🚀 Características
+⚠️ **Important**: The JSLT backend and validation system used in this extension are interpretations based on the original [JSLT](https://github.com/schibsted/jslt) project. They may contain inaccuracies or not include all features of the original language. Missing features will be added progressively. **If you need greater complexity or accuracy, please refer to the original JSLT repository**.
 
-- **Preview en Tiempo Real**: Visualiza el resultado de la transformación JSLT automáticamente al guardar
-- **Flujo de Trabajo Intuitivo**: Inicia desde archivos JSON, selecciona o crea templates JSLT, y edita en el editor de VS Code
-- **Actualización Automática**: El preview se refresca al guardar archivos JSLT o JSON (Ctrl+S)
-- **Syntax Highlighting**: Resaltado de sintaxis completo para archivos `.jslt` con soporte para:
+## 🚀 Features
+
+- **Real-Time Preview**: Visualize JSLT transformation results automatically on save
+- **Integrated JSLT Engine**: Process transformations directly in the extension, no external services needed
+- **Intuitive Workflow**: Start from JSON files, select or create JSLT templates, and edit in VS Code editor
+- **Automatic Updates**: Preview refreshes when saving JSLT or JSON files (Ctrl+S)
+- **Syntax Highlighting**: Complete syntax highlighting for `.jslt` files with support for:
   - Keywords (`let`, `if`, `else`, `for`, `def`)
-  - Operadores lógicos y aritméticos
-  - Funciones built-in de JSLT
+  - Logical and arithmetic operators
+  - JSLT built-in functions
   - Variables (`$variable`)
-  - Propiedades (`.field`)
-- **Explorador de Archivos**: Vista de árbol dedicada que muestra todos los archivos `.jslt` y `.json` en tu workspace
-- **Integración con API**: Conexión directa con backend JSLT para transformaciones precisas
-- **Visualización Limpia**: El preview solo muestra el resultado, sin distracciones
+  - Properties (`.field`)
+- **File Explorer**: Dedicated tree view showing all `.jslt` and `.json` files in your workspace
+- **Clean Visualization**: Preview shows only the result, without distractions
 
-## 📋 Requisitos
+## 📋 Requirements
 
-- **Visual Studio Code**: v1.106.1 o superior
-- **API JSLT Backend**: Un servidor REST que implemente los siguientes endpoints:
-  
-  **POST** `/api/v1/transform`
-  ```typescript
-  // Request Body
-  {
-    "input_json": any,        // El JSON a transformar
-    "jslt_expression": string // La expresión JSLT
-  }
-  
-  // Response
-  {
-    "success": boolean,
-    "output": any,
-    "error": string | null,
-    "execution_time_ms": number
-  }
-  ```
+- **Visual Studio Code**: v1.106.1 or higher
 
-  **POST** `/api/v1/validate` (opcional)
-  ```typescript
-  // Request Body
-  {
-    "jslt_expression": string
-  }
-  
-  // Response
-  {
-    "valid": boolean,
-    "error": string | null,
-    "suggestions": string[]
-  }
-  ```
+### 📌 Note about the JSLT Engine
 
-## 📖 Uso
+> ⚠️ This extension includes an internal JSLT engine that is an interpreted implementation based on the original JSLT language. This means that:
+> - There may be behavioral differences compared to the official JSLT
+> - Not all features of the original JSLT may be supported
+> - Features will be completed gradually
+> - For use cases requiring full compatibility, we recommend consulting the [official JSLT repository](https://github.com/schibsted/jslt) or using its Java implementation directly
 
-### Flujo de Trabajo
+## � JSLT Feature Support
 
-#### Opción 1: Desde un archivo JSON
+### Implementation Status (~30% Complete)
 
-1. **Abre un archivo JSON** en VS Code
-2. **Haz clic en el botón "▶️ Transformar con JSLT"** en la barra superior del editor
-3. **Elige una opción**:
-   - 📂 Abrir archivo JSLT existente
-   - ➕ Crear nuevo archivo JSLT
-4. **El preview se abre automáticamente** mostrando el resultado de la transformación
-5. **Edita tu JSLT** en el editor normal de VS Code
-6. **Guarda (Ctrl+S)** → El preview se actualiza automáticamente
+This extension currently supports **~30%** of the official JSLT language specification. Below is a summary of what's implemented:
 
-#### Opción 2: Desde un archivo JSLT
+#### ✅ Fully Supported Features
 
-1. **Abre un archivo JSLT** en VS Code
-2. **Haz clic en el botón "👁️ Abrir Preview JSLT"** en la barra superior
-3. **Selecciona el archivo JSON de contexto** (si es la primera vez)
-4. **El preview se abre** mostrando el resultado
-5. **Edita tu JSLT o JSON** en el editor
-6. **Guarda (Ctrl+S)** → El preview se actualiza automáticamente
+| Category | Features |
+|----------|----------|
+| **Basic Syntax** | Dot accessors (`.field`), Array indexing (`[0]`), JSON construction |
+| **Variables** | Declaration (`let`), Usage (`$var`), Local scope |
+| **Conditionals** | `if-else` expressions, Falsy values |
+| **Loops** | `for` loops with arrays, Filtering with `if` |
+| **Operators** | Arithmetic (`+`, `-`, `*`, `/`, `%`), Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`), Logical (`and`, `or`, `not`) |
+| **Basic Functions** | `size()`, `string()`, `number()`, `boolean()`, `round()`, `not()` |
 
-### El Preview
+#### ⚠️ Partially Supported
 
-El panel de preview muestra:
-- **Header**: Nombres de los archivos JSLT y JSON de contexto
-- **Contenido**: Resultado de la transformación en formato JSON formateado
-- **Footer**: Estado de la transformación y tiempo de ejecución
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Array operations | Limited | Basic indexing only, no slicing (`[1:3]`) |
+| String functions | Minimal | Only `string()` conversion available |
 
-> 💡 **Tip**: El preview se actualiza automáticamente cada vez que guardas el archivo JSLT o el JSON de contexto
+#### ❌ Not Yet Supported
 
-### Explorador JSLT
+<details>
+<summary><strong>Click to expand full list of missing features</strong></summary>
 
-El explorador en la barra lateral izquierda muestra:
-- 📁 **Archivos JSON**: Todos los archivos `.json` en tu workspace
-- 📄 **Archivos JSLT**: Todos los archivos `.jslt` en tu workspace
-- 🔄 **Botón de Refresco**: Actualiza la lista de archivos
+| Category | Missing Features |
+|----------|------------------|
+| **Advanced Syntax** | Array slicing, Object for expressions, Pipe operator (`\|`), Object matching (`*`), Dynamic keys |
+| **Function Declarations** | `def` keyword, Custom functions, Imports |
+| **String Functions** | `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`, `test()`, `replace()`, `starts-with()`, `ends-with()`, and 7 more |
+| **Numeric Functions** | `floor()`, `ceiling()`, `min()`, `max()`, `sum()`, `random()`, `mod()`, and 4 more |
+| **Array Functions** | `flatten()`, `all()`, `any()`, `zip()`, `index-of()`, and 3 more |
+| **Object Functions** | `is-object()`, `get-key()` |
+| **Time Functions** | `now()`, `parse-time()`, `format-time()` |
+| **Type Checking** | `is-array()`, `is-object()`, `is-string()`, `is-number()`, `is-boolean()`, `is-integer()`, `is-decimal()` |
 
-## ⚙️ Configuración
+</details>
 
-Accede a la configuración mediante `File > Preferences > Settings` y busca "JSLT Preview":
+#### 📈 Detailed Breakdown
 
-| Configuración | Tipo | Valor por defecto | Descripción |
-|--------------|------|-------------------|-------------|
-| `jsltPreview.apiEndpoint` | string | `http://localhost:8000/api/v1/transform` | URL del endpoint de la API JSLT |
-| `jsltPreview.apiTimeout` | number | `5000` | Timeout en milisegundos para peticiones |
-| `jsltPreview.autoRefresh` | boolean | `true` | Actualizar automáticamente el preview al guardar archivos JSLT o JSON |
-| `jsltPreview.defaultJsonFile` | string | `""` | Ruta del archivo JSON predeterminado |
+```
+Syntax & Operators:    ████████████░░░░░░░░  67%
+Basic Functions:       ████░░░░░░░░░░░░░░░░  20%
+Advanced Features:     ░░░░░░░░░░░░░░░░░░░░   0%
+Overall:               ██████░░░░░░░░░░░░░░  30%
+```
 
-### Ejemplo de configuración en `settings.json`:
+> 📖 **For a complete feature comparison**, see [JSLT-FEATURE-COMPARISON.md](JSLT-FEATURE-COMPARISON.md)
+
+### 🎯 Upcoming Features (Roadmap)
+
+**Next Release (High Priority):**
+- Array slicing (`[1:3]`, `[-1]`)
+- String functions: `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`
+- Array functions: `flatten()`, `all()`, `any()`
+- Numeric functions: `floor()`, `ceiling()`, `min()`, `max()`
+
+**Future Releases:**
+- Object for expressions
+- Pipe operator (`|`)
+- Type checking functions (`is-array()`, `is-object()`, etc.)
+- Regular expression support
+- Function declarations (`def`)
+- Import statements
+
+## �📖 Usage
+
+### Workflow
+
+#### Option 1: From a JSON file
+
+1. **Open a JSON file** in VS Code
+2. **Click the "▶️ Transform with JSLT" button** in the editor toolbar
+3. **Choose an option**:
+   - 📂 Open existing JSLT file
+   - ➕ Create new JSLT file
+4. **The preview opens automatically** showing the transformation result
+5. **Edit your JSLT** in the normal VS Code editor
+6. **Save (Ctrl+S)** → The preview updates automatically
+
+#### Option 2: From a JSLT file
+
+1. **Open a JSLT file** in VS Code
+2. **Click the "👁️ Open JSLT Preview" button** in the toolbar
+3. **Select the context JSON file** (if it's the first time)
+4. **The preview opens** showing the result
+5. **Edit your JSLT or JSON** in the editor
+6. **Save (Ctrl+S)** → The preview updates automatically
+
+### The Preview
+
+The preview panel displays:
+- **Header**: Names of the JSLT and context JSON files
+- **Content**: Transformation result in formatted JSON
+- **Footer**: Transformation status and execution time
+
+> 💡 **Tip**: The preview updates automatically every time you save the JSLT file or the context JSON
+
+### JSLT Explorer
+
+The explorer in the left sidebar shows:
+- 📁 **JSON Files**: All `.json` files in your workspace
+- 📄 **JSLT Files**: All `.jslt` files in your workspace
+- 🔄 **Refresh Button**: Updates the file list
+
+## ⚙️ Configuration
+
+Access settings via `File > Preferences > Settings` and search for "JSLT Preview":
+
+| Setting | Type | Default Value | Description |
+|---------|------|---------------|-------------|
+| `jsltPreview.autoRefresh` | boolean | `true` | Automatically update the preview when saving JSLT or JSON files |
+| `jsltPreview.defaultJsonFile` | string | `""` | Path to the default JSON file |
+
+### Example configuration in `settings.json`:
 
 ```json
 {
-  "jsltPreview.apiEndpoint": "http://localhost:8000/api/v1/transform",
-  "jsltPreview.apiTimeout": 10000,
-  "jsltPreview.autoRefresh": true
+  "jsltPreview.autoRefresh": true,
+  "jsltPreview.defaultJsonFile": "data/example.json"
 }
 ```
 
-## 🎨 Comandos Disponibles
+## 🎨 Available Commands
 
-- `Transformar con JSLT` - Inicia el flujo de transformación desde un archivo JSON (botón ▶️ en archivos .json)
-- `Abrir Preview JSLT` - Abre el panel de preview desde un archivo JSLT (botón 👁️ en archivos .jslt)
-- `JSLT: Cambiar JSON de contexto` - Cambia el archivo JSON usado como contexto
-- `JSLT: Abrir archivo JSLT` - Abre y asocia un archivo JSLT al preview
-- `JSLT: Refrescar explorador` - Actualiza la lista de archivos en el explorador
-- `JSLT: Transformar con archivo actual` - Transforma usando el archivo seleccionado en el explorador
+- `Transform with JSLT` - Starts the transformation flow from a JSON file (▶️ button in .json files)
+- `Open JSLT Preview` - Opens the preview panel from a JSLT file (👁️ button in .jslt files)
+- `JSLT: Change Context JSON` - Changes the JSON file used as context
+- `JSLT: Open JSLT File` - Opens and associates a JSLT file with the preview
+- `JSLT: Refresh Explorer` - Updates the file list in the explorer
+- `JSLT: Transform with Current File` - Transforms using the file selected in the explorer
 
-## 📝 Ejemplo de Uso
+## 📝 Usage Example
 
-**Archivo de entrada (`data.json`):**
+**Input file (`data.json`):**
 ```json
 {
   "name": "John Doe",
@@ -135,7 +178,7 @@ Accede a la configuración mediante `File > Preferences > Settings` y busca "JSL
 }
 ```
 
-**Template JSLT (`transform.jslt`):**
+**JSLT Template (`transform.jslt`):**
 ```jslt
 let skillCount = size(.skills)
 {
@@ -146,7 +189,7 @@ let skillCount = size(.skills)
 }
 ```
 
-**Resultado:**
+**Result:**
 ```json
 {
   "fullName": "John Doe",
@@ -158,59 +201,55 @@ let skillCount = size(.skills)
 
 
 
-## 🐛 Solución de Problemas
+## 🐛 Troubleshooting
 
-### El preview no se actualiza
-- Verifica que `jsltPreview.autoRefresh` esté habilitado
-- Intenta refrescar manualmente el explorador JSLT
+### Preview not updating
+- Verify that `jsltPreview.autoRefresh` is enabled
+- Try manually refreshing the JSLT explorer
+- Make sure you have saved changes to the JSLT or JSON file (Ctrl+S)
 
-### Error "No se pudo conectar con la API"
-- Asegúrate de que tu API JSLT esté corriendo en el endpoint configurado (por defecto `http://localhost:8000`)
-- Verifica la configuración `jsltPreview.apiEndpoint` y actualízala con la URL de tu API
-- Comprueba que tu API implemente correctamente el endpoint `/api/v1/transform`
-- Verifica que no haya firewall bloqueando la conexión
+### Transformation error
+- Verify that the JSLT syntax is correct
+- Check that the input JSON is valid
+- Review the VS Code output panel for more error details
 
-### Error de timeout
-- Aumenta el valor de `jsltPreview.apiTimeout`
-- Verifica que la expresión JSLT no sea demasiado compleja
-
-### Syntax highlighting no funciona
-- Verifica que el archivo tenga la extensión `.jslt`
-- Intenta cerrar y reabrir el archivo
+### Syntax highlighting not working
+- Verify that the file has the `.jslt` extension
+- Try closing and reopening the file
 
 ## 🛣️ Roadmap
 
-- [ ] Soporte para snippets de código JSLT
-- [ ] Validación en tiempo real mientras escribes
-- [ ] Historial de transformaciones
-- [ ] Exportar resultados
-- [ ] Modo diff para comparar input/output
-- [ ] Tests unitarios en el preview
-- [ ] Guardado de pares JSON-JSLT favoritos
+- [ ] Support for JSLT code snippets
+- [ ] Real-time validation while typing
+- [ ] Transformation history
+- [ ] Export results
+- [ ] Diff mode to compare input/output
+- [ ] Unit tests in preview
+- [ ] Save favorite JSON-JSLT pairs
 
-## 📄 Licencia
+## 📄 License
 
-MIT License - ver archivo LICENSE para más detalles.
+MIT License - see LICENSE file for details.
 
-## 🤝 Contribución
+## 🤝 Contributing
 
-Las contribuciones son bienvenidas! Por favor:
-1. Haz fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+Contributions are welcome! Please:
+1. Fork the project
+2. Create a branch for your feature (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📚 Recursos
+## 📚 Resources
 
-- [Documentación JSLT](https://github.com/schibsted/jslt)
-- [Tutorial JSLT](https://github.com/schibsted/jslt/blob/master/tutorial.md)
+- [JSLT Documentation](https://github.com/schibsted/jslt)
+- [JSLT Tutorial](https://github.com/schibsted/jslt/blob/master/tutorial.md)
 - [VS Code Extension API](https://code.visualstudio.com/api)
 
-## 👨‍💻 Autor
+## 👨‍💻 Author
 
 Fabián - JSLT Preview Extension
 
 ---
 
-**¡Disfruta transformando JSON con JSLT!** 🎉
+**Enjoy transforming JSON with JSLT!** 🎉
