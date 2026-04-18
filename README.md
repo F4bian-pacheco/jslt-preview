@@ -33,27 +33,20 @@ Transform JSON files with JSLT and visualize results in real-time. The preview a
 
 ## � JSLT Feature Support
 
-### Implementation Status (~30% Complete)
+### Implementation Status (~45% Complete)
 
-This extension currently supports **~30%** of the official JSLT language specification. Below is a summary of what's implemented:
+This extension currently supports **~45%** of the official JSLT language specification. Below is a summary of what's implemented:
 
 #### ✅ Fully Supported Features
 
 | Category | Features |
 |----------|----------|
-| **Basic Syntax** | Dot accessors (`.field`), Array indexing (`[0]`), JSON construction |
+| **Basic Syntax** | Dot accessors (`.field`), Array indexing (`[0]`), Array slicing (`[1:3]`, `[-1]`), JSON construction |
 | **Variables** | Declaration (`let`), Usage (`$var`), Local scope |
 | **Conditionals** | `if-else` expressions, Falsy values |
 | **Loops** | `for` loops with arrays, Filtering with `if` |
 | **Operators** | Arithmetic (`+`, `-`, `*`, `/`, `%`), Comparison (`==`, `!=`, `<`, `>`, `<=`, `>=`), Logical (`and`, `or`, `not`) |
-| **Basic Functions** | `size()`, `string()`, `number()`, `boolean()`, `round()`, `not()` |
-
-#### ⚠️ Partially Supported
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Array operations | Limited | Basic indexing only, no slicing (`[1:3]`) |
-| String functions | Minimal | Only `string()` conversion available |
+| **Basic Functions** | `size()`, `string()`, `number()`, `boolean()`, `round()`, `not()`, `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`, `flatten()`, `all()`, `any()`, `floor()`, `ceiling()`, `min()`, `max()` |
 
 #### ❌ Not Yet Supported
 
@@ -62,11 +55,11 @@ This extension currently supports **~30%** of the official JSLT language specifi
 
 | Category | Missing Features |
 |----------|------------------|
-| **Advanced Syntax** | Array slicing, Object for expressions, Pipe operator (`\|`), Object matching (`*`), Dynamic keys |
+| **Advanced Syntax** | Object for expressions, Pipe operator (`\|`), Object matching (`*`), Dynamic keys |
 | **Function Declarations** | `def` keyword, Custom functions, Imports |
-| **String Functions** | `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`, `test()`, `replace()`, `starts-with()`, `ends-with()`, and 7 more |
-| **Numeric Functions** | `floor()`, `ceiling()`, `min()`, `max()`, `sum()`, `random()`, `mod()`, and 4 more |
-| **Array Functions** | `flatten()`, `all()`, `any()`, `zip()`, `index-of()`, and 3 more |
+| **String Functions** | `test()`, `replace()`, `starts-with()`, `ends-with()`, and 7 more |
+| **Numeric Functions** | `sum()`, `random()`, `mod()`, and 4 more |
+| **Array Functions** | `zip()`, `index-of()`, and 3 more |
 | **Object Functions** | `is-object()`, `get-key()` |
 | **Time Functions** | `now()`, `parse-time()`, `format-time()` |
 | **Type Checking** | `is-array()`, `is-object()`, `is-string()`, `is-number()`, `is-boolean()`, `is-integer()`, `is-decimal()` |
@@ -77,9 +70,9 @@ This extension currently supports **~30%** of the official JSLT language specifi
 
 ```
 Syntax & Operators:    ████████████░░░░░░░░  67%
-Basic Functions:       ████░░░░░░░░░░░░░░░░  20%
+Basic Functions:       █████████░░░░░░░░░░░  45%
 Advanced Features:     ░░░░░░░░░░░░░░░░░░░░   0%
-Overall:               ██████░░░░░░░░░░░░░░  30%
+Overall:               █████████░░░░░░░░░░░  45%
 ```
 
 > 📖 **For a complete feature comparison**, see [JSLT-FEATURE-COMPARISON.md](JSLT-FEATURE-COMPARISON.md)
@@ -87,18 +80,16 @@ Overall:               ██████░░░░░░░░░░░░░
 ### 🎯 Upcoming Features (Roadmap)
 
 **Next Release (High Priority):**
-- Array slicing (`[1:3]`, `[-1]`)
-- String functions: `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`
-- Array functions: `flatten()`, `all()`, `any()`
-- Numeric functions: `floor()`, `ceiling()`, `min()`, `max()`
-
-**Future Releases:**
 - Object for expressions
 - Pipe operator (`|`)
 - Type checking functions (`is-array()`, `is-object()`, etc.)
 - Regular expression support
 - Function declarations (`def`)
 - Import statements
+
+**Future Releases:**
+- Advanced object matching and dynamic keys
+- Additional built-in functions from the JSLT specification
 
 ## �📖 Usage
 

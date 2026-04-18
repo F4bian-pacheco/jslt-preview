@@ -104,6 +104,19 @@ Esta es la versión inicial de JSLT Preview con todas las funcionalidades básic
 
 ## [Unreleased]
 
+## [1.0.5] - 2026-04-18
+
+### ✨ Añadido
+
+- Soporte para array slicing e índices negativos en expresiones JSLT
+- Nuevas funciones de string: `split()`, `join()`, `lowercase()`, `uppercase()`, `trim()`
+- Nuevas funciones de array: `flatten()`, `all()`, `any()`
+- Nuevas funciones numéricas: `floor()`, `ceiling()`, `min()`, `max()`
+
+### 🛠️ Actualizado
+
+- Documentación de soporte de características y roadmap
+
 ### Planeado para próximas versiones
 
 - [ ] Snippets de código JSLT
