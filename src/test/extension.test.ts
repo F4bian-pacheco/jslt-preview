@@ -1,4 +1,6 @@
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { JsltApiService } from '../services/JsltApiService';
 
@@ -50,5 +52,16 @@ suite('JSLT Preview Extension Test Suite', () => {
     assert.strictEqual(config.get('apiEndpoint'), 'http://localhost:8000/api/v1/transform');
     assert.strictEqual(config.get('apiTimeout'), 5000);
     assert.strictEqual(config.get('autoRefresh'), true);
+  });
+
+  test('Example transform should include modern JSLT syntax samples', () => {
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? path.join(__dirname, '..', '..');
+    const examplePath = path.join(workspaceRoot, 'examples', 'example-transform.jslt');
+    const exampleContent = fs.readFileSync(examplePath, 'utf8');
+
+    assert.ok(exampleContent.includes('.orders[1:3]'));
+    assert.ok(exampleContent.includes('.orders[:-1]'));
+    assert.ok(exampleContent.includes('.orders[-1]'));
+    assert.ok(exampleContent.includes('{for (.orders) .id : {'));
   });
 });

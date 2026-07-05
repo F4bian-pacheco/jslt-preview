@@ -73,8 +73,18 @@ export function activate(context: vscode.ExtensionContext) {
 
       jsltPath = uri.fsPath;
 
-      // Crear archivo con template básico
-      const templateContent = '// Transforma el JSON de entrada\n// Contexto disponible: .\n\n.';
+      // Crear archivo con un template que ejercita sintaxis JSLT reciente
+      const templateContent = `// JSLT de ejemplo para probar features modernas
+// - Array slicing: .orders[1:3] y .orders[:-1]
+// - Negative indexing: .orders[-1]
+// - Object for expressions: {for (.orders) .id : .product}
+
+{
+  "ordersSlice": .orders[1:3],
+  "ordersWithoutLast": .orders[:-1],
+  "lastOrder": .orders[-1],
+  "ordersById": {for (.orders) .id : .product}
+}`;
       await vscode.workspace.fs.writeFile(uri, Buffer.from(templateContent, 'utf8'));
     }
 

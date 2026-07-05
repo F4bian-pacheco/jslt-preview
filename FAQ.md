@@ -36,7 +36,7 @@ npm run compile
 **Opción 2: Desde archivo .vsix (producción)**
 ```bash
 # Una vez empaquetada
-code --install-extension jslt-preview-0.0.1.vsix
+code --install-extension jslt-preview-1.0.6.vsix
 ```
 
 ### ¿Cómo configuro el backend?
@@ -86,6 +86,8 @@ El backend implementa aproximadamente el 40% de la especificación JSLT:
 **✅ Soportado:**
 - Dot accessors (`.field`)
 - Array indexing (`[0]`)
+- Array slicing (`[1:3]`, `[-1]`)
+- Object for expressions
 - Object/Array construction
 - Variables (`let`, `$var`)
 - Conditionals (`if-else`)
@@ -94,8 +96,6 @@ El backend implementa aproximadamente el 40% de la especificación JSLT:
 - Funciones básicas (`size`, `string`, `number`, `boolean`, `round`)
 
 **❌ No soportado aún:**
-- Array slicing
-- Object for expressions
 - Function declarations (`def`)
 - Import statements
 - 50+ funciones built-in adicionales
@@ -114,7 +114,7 @@ Sí, la extensión incluye syntax highlighting completo para archivos `.jslt` co
 
 ### ¿Puedo trabajar con múltiples archivos JSON simultáneamente?
 
-En la versión actual (0.0.1), el preview maneja un JSON a la vez. Sin embargo, puedes cambiar fácilmente entre diferentes archivos JSON usando el botón "Seleccionar JSON".
+En la versión actual (1.0.6), el preview maneja un JSON a la vez. Sin embargo, puedes cambiar fácilmente entre diferentes archivos JSON usando el botón "Seleccionar JSON".
 
 ## 🐛 Problemas Comunes
 

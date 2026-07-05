@@ -24,6 +24,7 @@ export interface ValidateResponse {
 
 export class JsltApiService {
   private static readonly BACKEND_URL = 'https://jslt-backend-production.up.railway.app/api/v1/transform';
+  // private static readonly BACKEND_URL = 'http://localhost:8000/api/v1/transform';
 
   private getApiEndpoint(): string {
     return JsltApiService.BACKEND_URL;

@@ -8,7 +8,12 @@ Esta carpeta contiene ejemplos para probar la extensión JSLT Preview.
 JSON de entrada con información de un usuario y sus pedidos.
 
 ### `example-transform.jslt`
-Template JSLT que transforma los datos del usuario en un resumen de pedidos.
+Template JSLT que transforma los datos del usuario en un resumen de pedidos y prueba slicing, índice negativo y object-for.
+
+Incluye ejemplos de:
+- `.orders[1:3]` para slicing
+- `.orders[-1]` para índice negativo
+- `{for (.orders) .id : ...}` para object for expressions
 
 ## Cómo usar los ejemplos
 
@@ -19,6 +24,8 @@ Template JSLT que transforma los datos del usuario en un resumen de pedidos.
    - Haz clic en "📄 Seleccionar JSON" y elige `example-input.json`
    - Haz clic en "▶️ Transformar"
 5. Verás el resultado en el panel derecho
+
+Si la API de backend soporta estas sintaxis, el preview mostrará la transformación completa. Si no, el panel devolverá el error de parseo correspondiente y podrás ajustar el motor backend.
 
 ## Resultado esperado
 

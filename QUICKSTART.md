@@ -27,6 +27,13 @@ npm install
 npm run compile
 ```
 
+### Comandos que más se usan durante el desarrollo
+
+```bash
+npm run watch   # Recompila automáticamente al guardar cambios
+npm test        # Ejecuta la suite de pruebas
+```
+
 ### Paso 3: Ejecutar la Extensión
 
 1. Abre la carpeta de la extensión en VS Code
@@ -43,6 +50,13 @@ npm run compile
    - Selecciona `example-input.json`
    - Clic en "▶️ Transformar"
 5. ¡Verás el resultado transformado!
+
+### Notas sobre las funciones nuevas
+
+El ejemplo incluido ahora también sirve para probar:
+- Array slicing: `.orders[1:3]` y `.orders[:-1]`
+- Negative indexing: `.orders[-1]`
+- Object for expressions: `{for (.orders) .id : .product}`
 
 ## 📝 Crear Tu Primera Transformación
 
