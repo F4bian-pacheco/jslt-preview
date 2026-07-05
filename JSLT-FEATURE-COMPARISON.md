@@ -5,9 +5,9 @@
 Este documento compara las características del lenguaje JSLT original con la implementación actual en la extensión JSLT Preview.
 
 **Estado General:**
-- ✅ **Características Implementadas:** ~35%
+- ✅ **Características Implementadas:** ~45%
 - ⏳ **En Desarrollo:** ~10%
-- ❌ **Pendientes:** ~55%
+- ❌ **Pendientes:** ~45%
 
 ---
 
@@ -43,14 +43,14 @@ Este documento compara las características del lenguaje JSLT original con la im
 
 ---
 
-### ⚠️ Array Indexing
+### ✅ Array Indexing
 
 | Característica | Oficial | Implementado | Estado |
 |----------------|---------|--------------|--------|
 | Índice simple (`[0]`) | ✅ | ✅ | Completo |
-| Slicing (`[1:3]`) | ✅ | ❌ | No implementado |
-| Índices negativos (`[-1]`) | ✅ | ❌ | No implementado |
-| Slicing con negativos (`[1:-1]`) | ✅ | ❌ | No implementado |
+| Slicing (`[1:3]`) | ✅ | ✅ | Completo |
+| Índices negativos (`[-1]`) | ✅ | ✅ | Completo |
+| Slicing con negativos (`[1:-1]`) | ✅ | ✅ | Completo |
 
 **Ejemplo implementado:**
 ```jslt
@@ -58,11 +58,11 @@ Este documento compara las características del lenguaje JSLT original con la im
 .orders[2]      // ✅ Funciona
 ```
 
-**Ejemplos NO implementados:**
+**Ejemplos implementados:**
 ```jslt
-.orders[1:3]    // ❌ No funciona
-.orders[-1]     // ❌ No funciona
-.orders[1:-1]   // ❌ No funciona
+.orders[1:3]    // ✅ Funciona
+.orders[-1]     // ✅ Funciona
+.orders[1:-1]   // ✅ Funciona
 ```
 
 ---
@@ -148,21 +148,21 @@ let total = $count * 10
 
 ---
 
-### ❌ Object For Expressions
+### ✅ Object For Expressions
 
 | Característica | Oficial | Implementado | Estado |
 |----------------|---------|--------------|--------|
-| Object for básico | ✅ | ❌ | No implementado |
-| Object for con filtro | ✅ | ❌ | No implementado |
-| Loop sobre objetos | ✅ | ❌ | No implementado |
+| Object for básico | ✅ | ✅ | Completo |
+| Object for con filtro | ✅ | ✅ | Completo |
+| Loop sobre objetos | ✅ | ✅ | Completo |
 
-**Ejemplos NO implementados:**
+**Ejemplos implementados:**
 ```jslt
-{for (.items) string(.) : .}  // ❌ No funciona
+{for (.items) string(.) : .}  // ✅ Funciona
 
 {for (.) 
   "custom_" + .key : .value
-}  // ❌ No funciona
+}  // ✅ Funciona
 ```
 
 ---
@@ -594,7 +594,7 @@ utils:count(.)  // ❌ No funciona
 
 ### Diferencias Conocidas
 
-1. **Array Slicing**: La implementación actual no soporta slicing. Esto afecta muchos casos de uso comunes.
+1. **Array Slicing**: La implementación actual soporta slicing en arrays, incluyendo índices negativos.
 
 2. **Regex**: No hay soporte para expresiones regulares (`test()`, `capture()`, `replace()`).
 
@@ -608,12 +608,10 @@ utils:count(.)  // ❌ No funciona
 
 **En lugar de slicing:**
 ```jslt
-// ❌ No funciona:
+// ✅ Funciona:
 .items[1:3]
 
-// ✅ Alternativa:
-[for (.items) . if (let i = index-of(.items, .) $i >= 1 and $i < 3)]
-// (Requiere index-of, que tampoco está implementado aún)
+[for (.items) . if (. >= 1 and . < 3)]
 ```
 
 **En lugar de split/join:**

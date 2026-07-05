@@ -33,15 +33,16 @@ Transform JSON files with JSLT and visualize results in real-time. The preview a
 
 ## � JSLT Feature Support
 
-### Implementation Status (~45% Complete)
+### Implementation Status (~50% Complete)
 
-This extension currently supports **~45%** of the official JSLT language specification. Below is a summary of what's implemented:
+This extension currently supports **~50%** of the official JSLT language specification. Below is a summary of what's implemented:
 
 #### ✅ Fully Supported Features
 
 | Category | Features |
 |----------|----------|
 | **Basic Syntax** | Dot accessors (`.field`), Array indexing (`[0]`), Array slicing (`[1:3]`, `[-1]`), JSON construction |
+| **Advanced Syntax** | Object for expressions (`{for (.items) .key : .value}`) |
 | **Variables** | Declaration (`let`), Usage (`$var`), Local scope |
 | **Conditionals** | `if-else` expressions, Falsy values |
 | **Loops** | `for` loops with arrays, Filtering with `if` |
@@ -55,7 +56,7 @@ This extension currently supports **~45%** of the official JSLT language specifi
 
 | Category | Missing Features |
 |----------|------------------|
-| **Advanced Syntax** | Object for expressions, Pipe operator (`\|`), Object matching (`*`), Dynamic keys |
+| **Advanced Syntax** | Pipe operator (`\|`), Object matching (`*`), Dynamic keys |
 | **Function Declarations** | `def` keyword, Custom functions, Imports |
 | **String Functions** | `test()`, `replace()`, `starts-with()`, `ends-with()`, and 7 more |
 | **Numeric Functions** | `sum()`, `random()`, `mod()`, and 4 more |
@@ -80,7 +81,6 @@ Overall:               █████████░░░░░░░░░░
 ### 🎯 Upcoming Features (Roadmap)
 
 **Next Release (High Priority):**
-- Object for expressions
 - Pipe operator (`|`)
 - Type checking functions (`is-array()`, `is-object()`, etc.)
 - Regular expression support
@@ -217,6 +217,19 @@ let skillCount = size(.skills)
 - [ ] Diff mode to compare input/output
 - [ ] Unit tests in preview
 - [ ] Save favorite JSON-JSLT pairs
+
+## 🧰 Development Commands
+
+If you are rebuilding or iterating on the extension locally, these are the commands you will usually use:
+
+```bash
+npm install
+npm run compile
+npm run watch
+npm test
+```
+
+To run the extension in development mode, open the workspace in VS Code and press `F5`.
 
 ## 📄 License
 

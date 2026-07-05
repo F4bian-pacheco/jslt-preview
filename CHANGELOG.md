@@ -104,6 +104,18 @@ Esta es la versión inicial de JSLT Preview con todas las funcionalidades básic
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-07-05
+
+### ✨ Añadido
+
+- Soporte para object for expressions en el preview y en los ejemplos incluidos
+- Ejemplos actualizados para probar array slicing, índices negativos y construcción de objetos con `for`
+
+### 🛠️ Actualizado
+
+- Documentación de uso rápido, FAQ y comparación de features alineadas con la sintaxis reciente
+- Versión de la extensión actualizada a 1.0.6
+
 ## [1.0.5] - 2026-04-18
 
 ### ✨ Añadido
